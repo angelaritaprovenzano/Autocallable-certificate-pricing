@@ -29,13 +29,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="replicationerror.h">
+    <ClInclude Include="marketdata.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="replicationpathpricer.h">
+    <ClInclude Include="replicationerror.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="marketdata.h">
+    <ClInclude Include="replicationpathpricer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,5 +1,5 @@
 #include <ql/quantlib.hpp>
-#include <marketdata.h>
+#include <marketdata.hpp>
 
 using namespace QuantLib;
 

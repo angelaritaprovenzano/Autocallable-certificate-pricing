@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef market_data_h
-#define market_data_h
+#ifndef market_data_hpp
+#define market_data_hpp
 
 #define LENGTH(a) (sizeof(a)/sizeof(a[0]))
 
@@ -20,5 +20,5 @@ struct MarketData {
 
 };
 
-#endif // !market_data_h
+#endif // !market_data_hpp
 

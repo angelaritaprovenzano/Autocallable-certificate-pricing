@@ -1,5 +1,5 @@
 #include <ql/quantlib.hpp>
-#include <replicationpathpricer.h>
+#include <replicationpathpricer.hpp>
 
 
 using namespace QuantLib;

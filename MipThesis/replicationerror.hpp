@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef replication_error_h
-#define replication_error_h
+#ifndef replication_error_hpp
+#define replication_error_hpp
 
 #include <ql/quantlib.hpp>
 
@@ -35,5 +35,5 @@ class ReplicationError {
 };
 
 
-#endif // !replication_error_h
+#endif // !replication_error_hpp
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef replication_path_pricer_h
-#define replication_path_pricer_h
+#ifndef replication_path_pricer_hpp
+#define replication_path_pricer_hpp
 
 #include <ql/quantlib.hpp>
 

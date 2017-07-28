@@ -1,8 +1,8 @@
 #include <boost/timer.hpp>
 #include <iostream>
 #include <ql/quantlib.hpp>
-#include <marketdata.h>
-#include <replicationerror.h>
+#include <marketdata.hpp>
+#include <replicationerror.hpp>
 
 #ifdef BOOST_MSVC
 #  include <ql/auto_link.hpp>
