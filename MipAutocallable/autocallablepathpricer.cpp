@@ -31,9 +31,8 @@ AutocallablePathPricer::AutocallablePathPricer(boost::shared_ptr<YieldTermStruct
 
 Real AutocallablePathPricer::operator()(const MultiPath& paths) const {
 
-	const Path& path = paths[0];
-	Size n = path.length() - 1;
-	QL_REQUIRE(n > 0, "the path cannot be empty");
+	const MultiPath& path= paths;
+	//const Path& path = paths[0];
 
 	Calendar calendar = TARGET();
 	DayCounter dayCount = ActualActual();
@@ -48,14 +47,14 @@ Real AutocallablePathPricer::operator()(const MultiPath& paths) const {
 	//initialization of the price
 	Real price = plus * OISTermStructure_->discount(plusDate);
 
-	auto repayment = occurredRepayment(repayments_, path, dayCount, settlementDate_);
+	auto repayment = occurredRepayment(repayments_, path[0], dayCount, settlementDate_);
 	price += repayment.value;
 	if (repayment.paymentDate == repayments_.back().paymentDate) {
-		auto stock = stockValue(path, repayment.evaluationDates.back(), dayCount, settlementDate_);
+		auto stock = stockValue(path[0], repayment.evaluationDates.back(), dayCount, settlementDate_);
 		if (stock < barrierlevel) {
 			price -= repayment.coupon * OISTermStructure_->discount(repayment.paymentDate);
 			auto faceNPV = repayment.value - repayment.coupon * OISTermStructure_->discount(repayment.paymentDate);
-			auto stock_performance = computeAverage(repayments_.back(), path, dayCount, settlementDate_);
+			auto stock_performance = computeAverage(repayments_.back(), path[0], dayCount, settlementDate_);
 			price -= faceNPV * (1 - stock_performance / startinglevel);
 		}
 	}
@@ -71,8 +70,8 @@ Repayment occurredRepayment(const std::vector<Repayment>& repayments,
 		if (average >= r.exerciseLevel){
 			return r;
 		}
-		return repayments.back();
 	}
+	return repayments.back();
 }
 	
 Real stockValue(const Path& path, const Date& date,

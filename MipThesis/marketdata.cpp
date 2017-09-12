@@ -316,6 +316,49 @@ boost::shared_ptr<BlackVarianceSurface> MarketData::buildblackvariancesurface(Da
 }
 
 
+boost::shared_ptr<BlackVarianceCurve> MarketData::buildblackvariancecurve(Date settlementDate, Calendar calendar) {
+
+	auto variancesurface = buildblackvariancesurface(settlementDate, calendar);
+
+	Date expiryDates[] = {
+		Date(06, April, 2017),
+		Date(13, April, 2017),
+		Date(20, April, 2017),
+		Date(27, April, 2017),
+		Date(18, May, 2017),
+		Date(19, May, 2017),
+		Date(15, June, 2017),
+		Date(16, June, 2017),
+		Date(29, June, 2017),
+		Date(14, September, 2017),
+		Date(15, September, 2017),
+		Date(14, December, 2017),
+		Date(15, December, 2017),
+		Date(15, March, 2018),
+		Date(16, March, 2018),
+		Date(14, June, 2018),
+		Date(20, December, 2018),
+		Date(21, December, 2018),
+		Date(20, June, 2019),
+		Date(21, June, 2019),
+		Date(19, December, 2019),
+		Date(20, December, 2019),
+		Date(17, December, 2020),
+		Date(16, December, 2021),
+		Date(31, December, 2021),
+		Date(30, December, 2022) };
+
+	std::vector<Date> dates(expiryDates, expiryDates + LENGTH(expiryDates));
+	
+	std::vector<Volatility> vol = { 0.15990, 0.16040, 0.16460, 0.16700,	0.19620, 0.19680, 0.21810, 0.21830,	0.22140, 0.22640, 0.22650,
+									0.22970, 0.22980, 0.23200, 0.23200,	0.23780, 0.23980, 0.23980, 0.24340,	0.24340, 0.24540, 0.24540,
+									0.24860, 0.25040, 0.25050, 0.25150 };
+
+	boost::shared_ptr<BlackVarianceCurve> variancecurve(new BlackVarianceCurve(settlementDate, dates, vol, variancesurface->dayCounter()));
+	return variancecurve;
+}
+
+
 boost::shared_ptr<YieldTermStructure> MarketData::buildbonddiscountingurve(Date settlementDate, Natural fixingDays) {
 
 	Calendar calendar = TARGET();
@@ -425,75 +468,44 @@ boost::shared_ptr<YieldTermStructure> MarketData::buildbonddiscountingurve(Date 
 }
 
 
-boost::shared_ptr<YieldTermStructure> MarketData::builddividendcurve(Date settlementDate, Natural fixingDays, boost::shared_ptr<YieldTermStructure> OISTermStructure) {
+boost::shared_ptr<YieldTermStructure> MarketData::builddividendcurve(Date settlementDate, boost::shared_ptr<YieldTermStructure> OISTermStructure) {
 
 	Real s0 = 15.35;
 
 	//dates
-	Date expiry0(04, April, 2017);
-	Date expiry1(06, April, 2017);
-	Date expiry2(07, April, 2017);
-	Date expiry3(13, April, 2017);
-	Date expiry4(20, April, 2017);
-	Date expiry5(21, April, 2017);
-	Date expiry6(27, April, 2017);
-	Date expiry7(18, May, 2017);
-	Date expiry8(19, May, 2017);
-	Date expiry9(15, June, 2017);
-	Date expiry10(16, June, 2017);
-	Date expiry11(29, June, 2017);
-	Date expiry12(14, September, 2017);
-	Date expiry13(15, September, 2017);
-	Date expiry14(14, December, 2017);
-	Date expiry15(15, December, 2017);
-	Date expiry16(15, March, 2018);
-	Date expiry17(16, March, 2018);
-	Date expiry18(14, June, 2018);
-	Date expiry19(15, June, 2018);
-	Date expiry20(20, December, 2018);
-	Date expiry21(21, December, 2018);
-	Date expiry22(20, June, 2019);
-	Date expiry23(21, June, 2019);
-	Date expiry24(19, December, 2019);
-	Date expiry25(20, December, 2019);
-	Date expiry26(17, December, 2020);
-	Date expiry27(16, December, 2021);
-	Date expiry28(31, December, 2021);
-	Date expiry29(30, December, 2022);
-
 	std::vector<Date> dates;
-	dates.push_back(expiry0);
-	dates.push_back(expiry1);
-	dates.push_back(expiry2);
-	dates.push_back(expiry3);
-	dates.push_back(expiry4);
-	dates.push_back(expiry5);
-	dates.push_back(expiry6);
-	dates.push_back(expiry7);
-	dates.push_back(expiry8);
-	dates.push_back(expiry9);
-	dates.push_back(expiry10);
-	dates.push_back(expiry11);
-	dates.push_back(expiry12);
-	dates.push_back(expiry13);
-	dates.push_back(expiry14);
-	dates.push_back(expiry15);
-	dates.push_back(expiry16);
-	dates.push_back(expiry17);
-	dates.push_back(expiry18);
-	dates.push_back(expiry19);
-	dates.push_back(expiry20);
-	dates.push_back(expiry21);
-	dates.push_back(expiry22);
-	dates.push_back(expiry23);
-	dates.push_back(expiry24);
-	dates.push_back(expiry25);
-	dates.push_back(expiry26);
-	dates.push_back(expiry27);
-	dates.push_back(expiry28);
-	dates.push_back(expiry29);
+	dates.push_back(settlementDate);
+	dates.push_back(Date(06, April, 2017));
+	dates.push_back(Date(07, April, 2017));
+	dates.push_back(Date(13, April, 2017));
+	dates.push_back(Date(20, April, 2017));
+	dates.push_back(Date(21, April, 2017));
+	dates.push_back(Date(27, April, 2017));
+	dates.push_back(Date(18, May, 2017));
+	dates.push_back(Date(19, May, 2017));
+	dates.push_back(Date(15, June, 2017));
+	dates.push_back(Date(16, June, 2017));
+	dates.push_back(Date(29, June, 2017));
+	dates.push_back(Date(14, September, 2017));
+	dates.push_back(Date(15, September, 2017));
+	dates.push_back(Date(14, December, 2017));
+	dates.push_back(Date(15, December, 2017));
+	dates.push_back(Date(15, March, 2018));
+	dates.push_back(Date(16, March, 2018));
+	dates.push_back(Date(14, June, 2018));
+	dates.push_back(Date(15, June, 2018));
+	dates.push_back(Date(20, December, 2018));
+	dates.push_back(Date(21, December, 2018));
+	dates.push_back(Date(20, June, 2019));
+	dates.push_back(Date(21, June, 2019));
+	dates.push_back(Date(19, December, 2019));
+	dates.push_back(Date(20, December, 2019));
+	dates.push_back(Date(17, December, 2020));
+	dates.push_back(Date(16, December, 2021));
+	dates.push_back(Date(31, December, 2021));
+	dates.push_back(Date(30, December, 2022));
 
-	Real forward[] = { 15.35, 15.30, 15.30, 15.30, 15.30, 15.30, 14.90, 14.90, 14.90, 14.89, 14.89, 14.89, 14.88, 14.88, 14.53, 14.53, 14.53, 14.53, 14.21, 14.21,
+	Real forward[] = { s0, 15.30, 15.30, 15.30, 15.30, 15.30, 14.90, 14.90, 14.90, 14.89, 14.89, 14.89, 14.88, 14.88, 14.53, 14.53, 14.53, 14.53, 14.21, 14.21,
 		13.89, 13.89, 13.58, 13.58, 13.29, 13.29, 12.74, 12.24, 12.25, 11.80 };
 	
 	std::vector<Real> fwd(forward, forward + LENGTH(forward));
@@ -502,7 +514,7 @@ boost::shared_ptr<YieldTermStructure> MarketData::builddividendcurve(Date settle
 
 	for (auto i = 0; i < dates.size(); ++i) {
 		
-		auto qFactor = (fwd[i] / s0)*OISTermStructure->discount(dates[i]);
+		auto qFactor = (fwd[i] / s0) * OISTermStructure->discount(dates[i]);
 		qDiscount.push_back(qFactor);
 
 	}
