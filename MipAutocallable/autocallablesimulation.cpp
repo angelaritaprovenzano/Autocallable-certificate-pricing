@@ -86,6 +86,7 @@ void AutocallableSimulation::compute(Size nTimeSteps, Size nSamples, char modelT
 	// each path is priced using thePathPricer
 	// prices will be accumulated into statisticsAccumulator
 	Real Price = 0;
+	Real MC_Error = 0;
 	
 	if (modelType == 'B') {
 		std::cout << "\nCalcolo del prezzo con il modello di Black&Scholes...\n" << std::endl;
@@ -124,6 +125,7 @@ void AutocallableSimulation::compute(Size nTimeSteps, Size nSamples, char modelT
 		MCSimulation.addSamples(nSamples);
 
 		Price = MCSimulation.sampleAccumulator().mean();
+		MC_Error = MCSimulation.sampleAccumulator().errorEstimate();
 
 	} 
 	else if (modelType == 'H') {
@@ -172,11 +174,13 @@ void AutocallableSimulation::compute(Size nTimeSteps, Size nSamples, char modelT
 		MCSimulation.addSamples(nSamples);
 
 		Price = MCSimulation.sampleAccumulator().mean();
+		MC_Error = MCSimulation.sampleAccumulator().errorEstimate();
 	}
 	
 	std::cout << " \nQuotazione = " << 1005.32 << std::endl;
 	std::cout << " \nPrice = " << Price << std::endl;
 	std::cout << " \nErrore = " << abs(1 - Price / 1005.32) * 100 << " % " << std::endl;
+	std::cout << " \nErrore MC = " << MC_Error << std::endl;
 }
 
 Real repaymentValue(const Repayment& repayment,
