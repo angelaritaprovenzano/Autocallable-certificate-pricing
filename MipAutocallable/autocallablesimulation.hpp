@@ -2,6 +2,8 @@
 #ifndef autocallable_simulation_hpp
 #define autocallable_simulation_hpp
 
+#define LENGTH(a) (sizeof(a)/sizeof(a[0]))
+
 #include <ql/quantlib.hpp>
 
 using namespace QuantLib;

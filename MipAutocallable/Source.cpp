@@ -12,6 +12,9 @@ using namespace QuantLib;
 
 // Compute the price of an Autocallable Investment Certificate
 
+
+
+
 int main(int, char*[]) {
 
 	try {
@@ -23,7 +26,6 @@ int main(int, char*[]) {
 		Calendar calendar = TARGET();
 		DayCounter dayCount = Actual365Fixed();
 		Date todaysDate(31, March, 2017);
-
 		Integer fixingDays = 2;
 		Date settlementDate = calendar.advance(todaysDate, fixingDays, Days);
 		// must be a business day
@@ -41,9 +43,8 @@ int main(int, char*[]) {
 		auto OISTermStructure = MarketData::builddiscountingcurve(settlementDate, fixingDays);
 		auto qTermStructure = MarketData::builddividendcurve(settlementDate, OISTermStructure);
 		auto volCurve = MarketData::buildblackvariancecurve(settlementDate, calendar);
-			/*auto varTS = MarketData::buildblackvariancesurface(settlementDate, calendar);
-			Volatility sigma = varTS->blackVol(optionExpiryDate, strike);
-			const boost::shared_ptr<BlackVolTermStructure> volatility(new BlackConstantVol(settlementDate, calendar, sigma, dayCount));*/
+			//Volatility sigma = varTS->blackVol(optionExpiryDate, strike);
+			//const boost::shared_ptr<BlackVolTermStructure> volatility(new BlackConstantVol(settlementDate, calendar, sigma, dayCount));*/
 		auto volatility = volCurve;
 		
 		//bond discounting curve
@@ -72,7 +73,7 @@ int main(int, char*[]) {
 				fails = true;
 			}
 		} while (fails);		
-		
+
 		//timer
 		double seconds = timer.elapsed();
 		Integer hours = int(seconds / 3600);
