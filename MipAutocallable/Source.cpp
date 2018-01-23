@@ -12,9 +12,6 @@ using namespace QuantLib;
 
 // Compute the price of an Autocallable Investment Certificate
 
-
-
-
 int main(int, char*[]) {
 
 	try {

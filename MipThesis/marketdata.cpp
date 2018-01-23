@@ -310,7 +310,7 @@ boost::shared_ptr<BlackVarianceSurface> MarketData::buildblackvariancesurface(Da
 			dc));
 
 	varTS->enableExtrapolation(true);
-			
+	varTS->setInterpolation<Bicubic>();
 	return varTS;
 
 }

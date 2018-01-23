@@ -9,7 +9,7 @@ Real repaymentValue(const Repayment& repayment,
 	boost::shared_ptr<YieldTermStructure> riskFreeTermStructure,
 	boost::shared_ptr<YieldTermStructure> riskyTermStructure);
 
-Array calibrateHeston(boost::shared_ptr<YieldTermStructure>OISTermStructure,
+boost::shared_ptr<HestonModel> calibrateHeston(boost::shared_ptr<YieldTermStructure>OISTermStructure,
 	boost::shared_ptr<YieldTermStructure>qTermStructure,
 	boost::shared_ptr<BlackVarianceSurface> varTS,
 	boost::shared_ptr<Quote> underlying,
@@ -124,12 +124,12 @@ void AutocallableSimulation::compute(Size nTimeSteps, Size nSamples, char modelT
 				repayments));
 
 		Statistics statisticsAccumulator;
-
+		bool antitheticVariate = false;
 		MonteCarloModel<MultiVariate, PseudoRandom>
 			MCSimulation(MyPathGenerator,
 				MyPathPricer,
 				statisticsAccumulator,
-				false);
+				antitheticVariate);
 
 		MCSimulation.addSamples(nSamples);
 
@@ -144,17 +144,17 @@ void AutocallableSimulation::compute(Size nTimeSteps, Size nSamples, char modelT
 		Calendar calendar = TARGET();
 		DayCounter dayCount = Actual365Fixed();
 		auto varTS_ = MarketData::buildblackvariancesurface(settlementDate_, calendar);
-		Array param = calibrateHeston(OISTermStructure_, qTermStructure_, varTS_, underlying_, dayCount, calendar, settlementDate_,Date(03, Mar, 2021));
+		auto calibratedModel = calibrateHeston(OISTermStructure_, qTermStructure_, varTS_, underlying_, dayCount, calendar, settlementDate_,Date(03, Mar, 2021));
 				
-		Real theta = param.at(0);
+		Real theta = calibratedModel->theta();
 		std::cout << " \ntheta = " << theta << std::endl;
-		Real kappa = param.at(1);
+		Real kappa = calibratedModel->kappa();
 		std::cout << " \nkappa = " << kappa << std::endl;
-		Real sigma = param.at(2);
+		Real sigma = calibratedModel->sigma();
 		std::cout << " \nsigma = " << sigma << std::endl;
-		Real rho = param.at(3);
+		Real rho = calibratedModel->rho();
 		std::cout << " \nrho = " << rho << std::endl;
-		Real v0 = param.at(4);
+		Real v0 = calibratedModel->v0();
 		std::cout << " \nv0 = " << v0 << std::endl;
 
 		boost::shared_ptr<StochasticProcess> Hdiffusion(new HestonProcess(
@@ -180,12 +180,12 @@ void AutocallableSimulation::compute(Size nTimeSteps, Size nSamples, char modelT
 				repayments));
 
 		Statistics statisticsAccumulator;
-
+		bool antitheticVariate = false;
 		MonteCarloModel<MultiVariate, PseudoRandom>
 			MCSimulation(MyPathGenerator,
 				MyPathPricer,
 				statisticsAccumulator,
-				false);
+				antitheticVariate);
 
 		MCSimulation.addSamples(nSamples);
 
@@ -210,7 +210,7 @@ Real repaymentValue(const Repayment& repayment,
 	return zcValue + couponValue;
 }
 	
-Array calibrateHeston(const boost::shared_ptr<YieldTermStructure>OISTermStructure,
+boost::shared_ptr<HestonModel> calibrateHeston(const boost::shared_ptr<YieldTermStructure>OISTermStructure,
 	const boost::shared_ptr<YieldTermStructure>qTermStructure,
 	const boost::shared_ptr<BlackVarianceSurface> varTS,
 	boost::shared_ptr<Quote> underlying,
@@ -220,12 +220,19 @@ Array calibrateHeston(const boost::shared_ptr<YieldTermStructure>OISTermStructur
 	Date expiryDate) {
 
 	//initial guess
-	const Real epsilon = 0.718598576122673;
-	const Real v0 = 0.0292;
-	const Real kappa = 1.13;
-	const Real theta = 0.191 * (epsilon * epsilon);
-	const Real sigma = 0.74355254 * epsilon;
-	const Real rho = -0.58486121;
+
+	/*const Real epsilon = 0.718598576122673;
+	Real v0 = 0.0292;
+	Real kappa = 1.13;
+	Real theta = 0.191 * (epsilon * epsilon);
+	Real sigma = 0.74355254 * epsilon;
+	Real rho = -0.58486121;*/
+
+	Real theta = 0.2;
+	Real kappa = 1.5;
+	Real sigma = 0.5;
+	Real rho = -0.5;
+	Real v0 = 0.3;
 
 	boost::shared_ptr<HestonProcess> process(new HestonProcess(
 		Handle<YieldTermStructure>(OISTermStructure),
@@ -233,12 +240,11 @@ Array calibrateHeston(const boost::shared_ptr<YieldTermStructure>OISTermStructur
 		Handle<Quote>(underlying),
 		v0, kappa, theta, sigma, rho));
 	boost::shared_ptr<HestonModel> model(boost::make_shared<HestonModel>(process));
-	boost::shared_ptr<PricingEngine> engine(boost::make_shared<AnalyticHestonEngine>(model));
+	boost::shared_ptr<PricingEngine> engine(boost::make_shared<AnalyticHestonEngine>(model,192));
 	std::vector<boost::shared_ptr<CalibrationHelper>> options;
 
 	//expiry dates
-	Date expiryDates[] = { settlementDate,
-		Date(06, April, 2017),
+	Date expiryDates[] = {Date(06, April, 2017),
 		Date(07, April, 2017),
 		Date(13, April, 2017),
 		Date(20, April, 2017),
@@ -274,20 +280,37 @@ Array calibrateHeston(const boost::shared_ptr<YieldTermStructure>OISTermStructur
 	std::vector<Real> strikes(K, K + LENGTH(K));
 	const Real s0 = 15.35;
 	for (Size i = 0; i < strikes.size(); ++i) {
-		for (Size j = 1; j < dates.size(); ++j) {
-			const Period maturity((int)((dates[j] - settlementDate) / 7.), Weeks);
-			boost::shared_ptr<Quote> vol(new SimpleQuote(varTS->blackVol(dates[j], strikes[i])));
-			boost::shared_ptr<HestonModelHelper> helper(boost::make_shared<HestonModelHelper>(maturity, calendar,
-				s0, K[i], Handle<Quote>(vol), Handle<YieldTermStructure>(OISTermStructure),
-				Handle<YieldTermStructure>(qTermStructure), CalibrationHelper::ImpliedVolError));
-			options.push_back(helper);
+		for (Size j = 0; j < dates.size(); ++j) {
+			Period maturity((int)((dates[j] - settlementDate) / 7.), Weeks);
+				boost::shared_ptr<Quote> vol(new SimpleQuote(varTS->blackVol(dates[j], strikes[i])));
+				boost::shared_ptr<HestonModelHelper> helper(boost::make_shared<HestonModelHelper>(maturity, calendar,
+					s0, K[i], Handle<Quote>(vol), Handle<YieldTermStructure>(OISTermStructure),
+					Handle<YieldTermStructure>(qTermStructure), CalibrationHelper::ImpliedVolError));
+				options.push_back(helper);
 		}
 	}
 	for (Size i = 0; i < options.size(); ++i) {
 		options[i]->setPricingEngine(engine);
 	}
-	LevenbergMarquardt om(1e-8, 1e-8, 1e-8);
-	model->calibrate(options, om, EndCriteria(500, 40, 1.0e-8, 1.0e-8, 1.0e-8));
-	Real tolerance = 3.0e-7;
-	return model->params();
+	
+	//global optimizer: simulated annealing
+	Real lambda = 0.1;
+	Real t0 = 0.5;
+	Real dec = 0.1;
+	Size moves = 10000;
+	SimulatedAnnealing<> sa(lambda, t0, dec, moves, MersenneTwisterUniformRng(42));
+
+	//local optimizer: LevenbergMarquardt
+	LevenbergMarquardt om; 
+
+	//calibrate
+	Size maxIterations = 500;
+	Size maxStationaryStateIterations = 50;
+	Real rootEpsilon = 1.0e-8;
+	Real functionEpsilon = 1.0e-8;
+	Real gradientNormEpsilon = 1.0e-8;
+	model->calibrate(options, sa, EndCriteria(maxIterations, maxStationaryStateIterations,
+		rootEpsilon, functionEpsilon, gradientNormEpsilon));
+		
+	return model;
 }
