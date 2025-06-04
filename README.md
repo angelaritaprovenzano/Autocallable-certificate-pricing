@@ -2,7 +2,9 @@
 
 This repository implements the pricing of an exotic derivative known as an **Autocallable Certificate** using **Monte Carlo simulation**. The project is written in **C++** and uses **QuantLib**, a powerful open-source library for quantitative finance.
 
-In addition to pricing, the project estimates **model risk** by calculating the **replication error** based on the methodology proposed by **Derman and Kamal (2002)**.
+In addition to pricing, the project estimates **model risk** by calculating the **replication error** based on the methodology proposed by **Derman and Kamal (2002)**, using the approach described in:
+
+> Derman, E., & Kamal, M. (2002). *The illusion of dynamic replication*. Risk Magazine, 15(8), 57-63.
 
 ---
 
@@ -16,27 +18,6 @@ An **Autocallable Certificate** is a structured financial product that offers ea
 
 These products are widely used in structured investments and are characterized by non-linear and path-dependent payoffs.
 
----
-
-## 🧮 Model Risk Estimation: Replication Error (Derman & Kamal)
-
-To evaluate **model risk**, the project calculates the **replication error** using the approach described in:
-
-> Derman, E., & Kamal, M. (2002). *The illusion of dynamic replication*. Risk Magazine, 15(8), 57-63.
-
-### 📐 Formula (Simplified):
-
-\[
-\text{Model Risk} = \sqrt{ \mathbb{E} \left[ \left( V_{\text{model}} - V_{\text{replication}} \right)^2 \right] }
-\]
-
-Where:
-
-- \( V_{\text{model}} \): Price from the Monte Carlo model  
-- \( V_{\text{replication}} \): Value of a replicating portfolio or hedging strategy  
-- The error reflects the potential deviation between the model price and actual hedge-based replication, acting as a proxy for model uncertainty
-
----
 
 ## ⚙️ Features
 
